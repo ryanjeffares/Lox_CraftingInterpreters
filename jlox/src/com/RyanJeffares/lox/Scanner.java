@@ -1,11 +1,11 @@
-package com.RyanJeffares;
+package com.RyanJeffares.lox;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.RyanJeffares.TokenType.*;
+import static com.RyanJeffares.lox.TokenType.*;
 
 class Scanner {
     private final String source;

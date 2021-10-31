@@ -1,4 +1,4 @@
-package com.RyanJeffares;
+package com.RyanJeffares.lox;
 
 class Token {
     final TokenType type;

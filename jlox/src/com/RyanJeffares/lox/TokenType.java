@@ -1,4 +1,4 @@
-package com.RyanJeffares;
+package com.RyanJeffares.lox;
 
 enum TokenType {
     // Single character tokens
