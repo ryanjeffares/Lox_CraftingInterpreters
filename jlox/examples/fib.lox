@@ -1,0 +1,14 @@
+var x = 0;
+var y = 1;
+var z;
+
+while (x <= 233) {
+    print x;
+    z = x + y;
+    x = y;
+    y = z;
+}
+
+for (var i = 0; i < 10; i = i + 1) {
+    print "Hello" * i;
+}
