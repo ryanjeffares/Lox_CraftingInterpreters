@@ -1,0 +1,2 @@
+## 10.1.4 - Checking Arity
+* **Arity**: Arity is the fancy term for the number of arguments a function or operation expects. Unary operators have arity one, binary operators two, etc. With functions, the arity is determined by the number of parameters it declares.
