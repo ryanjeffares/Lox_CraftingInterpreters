@@ -1,5 +1,23 @@
-class Person {
-    init(name) {
-        this.name = name;
+class Roots {
+    init(first, second) {
+        this.first = first;
+        this.second = second;
+    }
+
+    display() {
+        print "First: " + this.first + ", Second: " + this.second;
     }
 }
+
+fun square(n) {
+    return n*n;
+}
+
+fun quadraticFormula(a, b, c) {
+    var s = sqrt(square(b) - (4*a*c));
+    var first = (-b + s) / (2*a);
+    var second = (-b - s) / (2*a);
+    return Roots(first, second);
+}
+
+quadraticFormula(1, -8, 5).display();

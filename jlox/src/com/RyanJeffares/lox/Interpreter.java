@@ -27,6 +27,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 return "<native fn>";
             }
         });
+        globals.define("sqrt", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return Math.sqrt((double) arguments.get(0));
+            }
+
+            @Override
+            public String toString() {
+                return "<native fn>";
+            }
+        });
     }
 
     void interpret(List<Stmt> statements) {
@@ -72,7 +88,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 }
 
                 if (left instanceof String && right instanceof String) {
-                    return (String) left + (String) right;
+                    return left.toString() + right;
+                }
+
+                if (left instanceof String && right instanceof Double) {
+                    return left.toString() + right.toString();
                 }
 
                 throw new RuntimeError(expr.operator, "Operands must be two numbers or two strings.");
@@ -171,6 +191,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitSuperExpr(Expr.Super expr) {
+        var distance = locals.get(expr);
+        var superclass = (LoxClass) environment.getAt(distance, "super");
+
+        var object = (LoxInstance) environment.getAt(distance - 1, "this");
+
+        var method = superclass.findMethod(expr.method.lexeme);
+        if (method == null) {
+            throw new RuntimeError(expr.method, "Undefined property '" + expr.method.lexeme + "'.");
+        }
+        return method.bind(object);
+    }
+
+    @Override
     public Object visitThisExpr(Expr.This expr) {
         return lookUpVariable(expr.keyword, expr);
     }
@@ -259,7 +293,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
+        Object superclass = null;
+        if (stmt.superclass != null) {
+            superclass = evaluate(stmt.superclass);
+            if (!(superclass instanceof LoxClass)) {
+                throw new RuntimeError(stmt.superclass.name, "Superclass must be a class.");
+            }
+        }
+
         environment.define(stmt.name.lexeme, null);
+
+        if (stmt.superclass != null) {
+            environment = new Environment(environment);
+            environment.define("super", superclass);
+        }
 
         Map<String, LoxFunction> methods = new HashMap<>();
         for (var method : stmt.methods) {
@@ -267,7 +314,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             methods.put(method.name.lexeme, function);
         }
 
-        var cls = new LoxClass(stmt.name.lexeme, methods);
+        var cls = new LoxClass(stmt.name.lexeme, (LoxClass) superclass, methods);
+
+        if (superclass != null) {
+            environment = environment.enclosing;
+        }
+
         environment.assign(stmt.name, cls);
         return null;
     }
