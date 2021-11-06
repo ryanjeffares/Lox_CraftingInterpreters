@@ -11,7 +11,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private final Map<Expr, Integer> locals = new HashMap<>();
 
     Interpreter() {
-        globals.define("clock", new LoxCallable() {
+        globals.define("clockMillis", new LoxCallable() {
             @Override
             public int arity() {
                 return 0;
@@ -25,6 +25,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             @Override
             public String toString() {
                 return "<native fn>";
+            }
+        });
+        globals.define("clockNanos", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return (double) System.nanoTime();
             }
         });
         globals.define("sqrt", new LoxCallable() {
@@ -41,6 +52,83 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             @Override
             public String toString() {
                 return "<native fn>";
+            }
+        });
+        globals.define("sin", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return Math.sin((double) arguments.get(0));
+            }
+        });
+        globals.define("cos", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return Math.cos((double) arguments.get(0));
+            }
+        });
+        globals.define("tan", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return Math.tan((double) arguments.get(0));
+            }
+        });
+        globals.define("degreesToRadians", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return Math.toRadians((double) arguments.get(0));
+            }
+        });
+        globals.define("asin", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return Math.asin((double) arguments.get(0));
+            }
+        });
+        globals.define("acos", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return Math.acos((double) arguments.get(0));
+            }
+        });
+        globals.define("atan", new LoxCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return Math.atan((double) arguments.get(0));
             }
         });
     }

@@ -1,23 +1,14 @@
-class Roots {
-    init(first, second) {
-        this.first = first;
-        this.second = second;
+fun fib(n) {
+    if (n < 2) {
+        return n;
     }
-
-    display() {
-        print "First: " + this.first + ", Second: " + this.second;
+    else {
+        return fib(n - 2) + fib(n - 1);
     }
 }
 
-fun square(n) {
-    return n*n;
-}
+var start = clockMillis();
+print fib(40);
+var end = clockMillis();
 
-fun quadraticFormula(a, b, c) {
-    var s = sqrt(square(b) - (4*a*c));
-    var first = (-b + s) / (2*a);
-    var second = (-b - s) / (2*a);
-    return Roots(first, second);
-}
-
-quadraticFormula(1, -8, 5).display();
+print end - start;
