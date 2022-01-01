@@ -9,4 +9,7 @@ statement     -> exprStmt
 declaration   -> classDecl
               | funDecl
               | varDecl
+              | finalDecl
               | statement ;
+
+block         -> "{" declaration* "}" ;

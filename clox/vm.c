@@ -70,7 +70,7 @@ static void concatenate() {
     chars[length] = '\0';
 
     ObjString* result = takeString(chars, length);
-    push(OBJ_VAL(result));
+    push(OBJ_VAL(result, true));
 }
 
 static InterpretResult run() {
@@ -85,7 +85,7 @@ static InterpretResult run() {
         } \
         double b = AS_NUMBER(pop()); \
         double a = AS_NUMBER(pop()); \
-        push(valueType(a op b)); \
+        push(valueType(a op b, true)); \
     } while (false)
 
     for (;;) {
@@ -108,9 +108,19 @@ static InterpretResult run() {
                 push(constant);
                 break;	    
             case OP_NIL:        push(NIL_VAL);          break;
-            case OP_TRUE:       push(BOOL_VAL(true));   break;
-            case OP_FALSE:      push(BOOL_VAL(false));  break;
+            case OP_TRUE:       push(BOOL_VAL(true, true));   break;
+            case OP_FALSE:      push(BOOL_VAL(false, true));  break;
             case OP_POP:        pop();                  break;
+            case OP_GET_LOCAL: {
+                uint8_t slot = READ_BYTE();
+                push(vm.stack[slot]);
+                break;
+            }
+            case OP_SET_LOCAL: {
+                uint8_t slot = READ_BYTE();
+                vm.stack[slot] = peek(0);
+                break;
+            }
             case OP_GET_GLOBAL: {
                ObjString* name = READ_STRING();
                Value value;
@@ -124,23 +134,34 @@ static InterpretResult run() {
             }
             case OP_DEFINE_GLOBAL: {
                 ObjString* name = READ_STRING();
-                tableSet(&vm.globals, name, peek(0));
+                tableSet(&vm.globals, name, peek(0), false);
+                pop();
+                break;
+            }
+            case OP_DEFINE_GLOBAL_FINAL: {
+                ObjString* name = READ_STRING();
+                tableSet(&vm.globals, name, peek(0), true);
                 pop();
                 break;
             }
             case OP_SET_GLOBAL: {
                 ObjString* name = READ_STRING();
-                if (tableSet(&vm.globals, name, peek(0))) {
-                    tableDelete(&vm.globals, name);
+
+                if (!tableHasKey(&vm.globals, name)) {
                     runtimeError("Tried to assign to undefined global variable '%s'.", name->chars);
-                    return INTERPRET_RUNTIME_ERROR;                    
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                if (!tableUpdate(&vm.globals, name, peek(0))) {
+                    runtimeError("Cannot reassign global final.");
+                    return INTERPRET_RUNTIME_ERROR;
                 }
                 break;                
             }
             case OP_EQUAL: {
                 Value b = pop();
                 Value a = pop();
-                push(BOOL_VAL(valuesEqual(a, b)));
+                push(BOOL_VAL(valuesEqual(a, b), true));
                 break;
             }
             case OP_GREATER:    BINARY_OP(BOOL_VAL, >); break;
@@ -151,7 +172,7 @@ static InterpretResult run() {
                 } else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
                     double b = AS_NUMBER(pop());
                     double a = AS_NUMBER(pop());
-                    push(NUMBER_VAL(a + b));
+                    push(NUMBER_VAL(a + b, true));
                 } else {
                     runtimeError("Operands must be two numbers or two strings.");
                     return INTERPRET_RUNTIME_ERROR;
@@ -162,14 +183,14 @@ static InterpretResult run() {
             case OP_MULTIPLY:   BINARY_OP(NUMBER_VAL, *); break;
             case OP_DIVIDE:     BINARY_OP(NUMBER_VAL, /); break;
             case OP_NOT:
-                push(BOOL_VAL(isFalsey(pop())));
+                push(BOOL_VAL(isFalsey(pop()), true));
                 break;
             case OP_NEGATE: 	
                 if (!IS_NUMBER(peek(0))) {
                     runtimeError("Operand must be a number.");
                     return INTERPRET_RUNTIME_ERROR;
                 }
-                push(NUMBER_VAL(-AS_NUMBER(pop())));
+                push(NUMBER_VAL(-AS_NUMBER(pop()), true));
                 break;
             case OP_PRINT:
                 printValue(pop());
